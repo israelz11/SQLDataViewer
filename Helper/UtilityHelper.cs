@@ -24,7 +24,7 @@ namespace SQLDataViewer.Helper
             return System.Text.Encoding.UTF8.GetString(bytes);
         }
 
-        public static string TocamelCase(string Text)
+        public static string ToCamelCase(string Text)
         {
             if (string.IsNullOrEmpty(Text))
                 return string.Empty;
@@ -34,5 +34,29 @@ namespace SQLDataViewer.Helper
             Text = Text.Replace("_", "");
             return char.ToLower(Text[0]) + Text.Substring(1);
         }
+
+        public static string ToLowerCase(string Text)
+        {
+            if (string.IsNullOrEmpty(Text))
+                return string.Empty;
+            Text = Text.ToLower();
+            Text = Text.Replace(" ", "");
+            Text = Text.Replace("-", "");
+            Text = Text.Replace("_", "");
+            return Text;
+        }
+
+        public static string ToPascalCase(string Text)
+        {
+            if (string.IsNullOrEmpty(Text))
+                return string.Empty;
+            string originalText = Text.Replace(" ", "").Replace("-", "").Replace("_", "");
+            Text = Text.ToLower();
+            Text = Text.Replace(" ", "");
+            Text = Text.Replace("-", "");
+            Text = Text.Replace("_", "");
+            return char.ToUpper(Text[0]) + originalText.Substring(1);
+        }
+
     }
 }

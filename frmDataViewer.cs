@@ -24,7 +24,7 @@ public partial class frmDataViewer : Form
 
         try
         {
-            if(txtServer.Text=="")
+            if (txtServer.Text == "")
             {
                 MessageBox.Show("Server is empty", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -62,10 +62,11 @@ public partial class frmDataViewer : Form
                 dataGridViewData.DataSource = null;
                 cmdClear_Click(sender, e);
                 cmdMakeInsert.Enabled = false;
+                cmdMakeUpdate.Enabled = false;
                 richClass.Text = string.Empty;
                 cmdCopyClass.Enabled = false;
 
-                if (tablesAndViews.Rows.Count >0)
+                if (tablesAndViews.Rows.Count > 0)
                 {
                     var response = ConnectionHelper.SaveConnection(connectionString);
                 }
@@ -107,8 +108,6 @@ public partial class frmDataViewer : Form
             waitForm.Show();
             waitForm.Refresh();
 
-            
-            //connectionString = $"Server={txtServer.Text};Database={txtDatabase.Text};User Id={txtUsername.Text};Password={txtPassword.Text};";
             string tableName = dataGridViewTables.SelectedRows[0].Cells["TABLE_NAME"].Value.ToString();
             string tableSchema = dataGridViewTables.SelectedRows[0].Cells["TABLE_SCHEMA"].Value.ToString();
             string query = $"SELECT * FROM {tableSchema}.{tableName}";
@@ -122,6 +121,7 @@ public partial class frmDataViewer : Form
                     adapter.Fill(dataTable);
                     dataGridViewData.DataSource = dataTable;
                     cmdMakeInsert.Enabled = true;
+                    cmdMakeUpdate.Enabled = true;
 
                     GetClass();
                 }
@@ -142,28 +142,7 @@ public partial class frmDataViewer : Form
         string tableSchema = dataGridViewTables.SelectedRows[0].Cells["TABLE_SCHEMA"].Value.ToString();
         string columnQuery = $"SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{tableName}' AND TABLE_SCHEMA = '{tableSchema}'";
         string primaryKey = GetPrimaryKey();
-
-        var highlightText = new List<ColouredText>()
-            {
-                new ColouredText($"namespace", Color.Blue),
-                new ColouredText($"using ", Color.Blue),
-                new ColouredText($"public ", Color.Blue),
-                new ColouredText($"partial ", Color.Blue),
-                new ColouredText($"class ", Color.Blue),
-                new ColouredText($"Key", Color.SkyBlue),
-                new ColouredText($"Required", Color.SkyBlue),
-                new ColouredText($"Column", Color.SkyBlue),
-                new ColouredText($"StringLength", Color.SkyBlue),
-                new ColouredText($"DatabaseGenerated", Color.SkyBlue),
-                new ColouredText($"DatabaseGeneratedOption", Color.DarkSeaGreen),
-                new ColouredText($"Identity", Color.SkyBlue),
-                new ColouredText($"DateTime ", Color.Green),
-                new ColouredText($"int ", Color.Blue),
-                new ColouredText($"long ", Color.Blue),
-                new ColouredText($"string ", Color.Blue),
-                new ColouredText($"bool ", Color.Blue),
-                new ColouredText($"{UtilityHelper.ToTitle(tableName)}", Color.Green),
-            };
+        bool toTitleCase = chkTotitleCase.Checked;
 
         using (SqlConnection connection = new SqlConnection(connectionString))
         {
@@ -175,7 +154,7 @@ public partial class frmDataViewer : Form
 
                 this.richClass.Text = "using System.ComponentModel.DataAnnotations;\n" +
                     "using System.ComponentModel.DataAnnotations.Schema;\n\n";
-                this.richClass.Text += "public partial class " + UtilityHelper.ToTitle(tableName) + "\n";
+                this.richClass.Text += "public partial class " + (toTitleCase ? UtilityHelper.ToTitle(tableName) : tableName) + "\n";
                 this.richClass.Text += "{\n";
                 foreach (DataRow row in columnsTable.Rows)
                 {
@@ -201,36 +180,37 @@ public partial class frmDataViewer : Form
                         this.richClass.Text += "\t[StringLength(" + row["CHARACTER_MAXIMUM_LENGTH"].ToString() + ")]\n";
                     }
 
+                    if (chkOriginalColumnName.Checked)
+                        this.richClass.Text += "\t[Column(\"" + row["COLUMN_NAME"].ToString() + "\")]\n";
 
-                    this.richClass.Text += "\t[Column(\"" + row["COLUMN_NAME"].ToString() + "\")]\n";
-
+                    string columName = (toTitleCase ? UtilityHelper.ToPascalCase(row["COLUMN_NAME"].ToString()) : UtilityHelper.ToLowerCase(row["COLUMN_NAME"].ToString()));
 
                     if (dataType.Equals("bigint"))
                     {
-                        this.richClass.Text += "\tpublic long" + nullTag + " " + UtilityHelper.ToTitle(row["COLUMN_NAME"].ToString()) + " {get; set;}\n";
+                        this.richClass.Text += "\tpublic long" + nullTag + " " + columName + " {get; set;}\n";
                     }
                     else if (dataType.Equals("int"))
                     {
-                        this.richClass.Text += "\tpublic int" + nullTag + " " + UtilityHelper.ToTitle(row["COLUMN_NAME"].ToString()) + " {get; set;}\n";
+                        this.richClass.Text += "\tpublic int" + nullTag + " " + columName + " {get; set;}\n";
                     }
                     else if (dataType.Equals("varchar") || dataType.Equals("nvarchar"))
                     {
-                        this.richClass.Text += "\tpublic string" + nullTag + " " + UtilityHelper.ToTitle(row["COLUMN_NAME"].ToString()) + " {get; set;}\n";
+                        this.richClass.Text += "\tpublic string" + nullTag + " " + columName + " {get; set;}\n";
                     }
                     else if (dataType.Equals("datetime"))
                     {
-                        this.richClass.Text += "\tpublic DateTime" + nullTag + " " + UtilityHelper.ToTitle(row["COLUMN_NAME"].ToString()) + " {get; set;}\n";
+                        this.richClass.Text += "\tpublic DateTime" + nullTag + " " + columName + " {get; set;}\n";
                     }
                     else if (dataType.Equals("bit"))
                     {
-                        this.richClass.Text += "\tpublic bool" + nullTag + " " + UtilityHelper.ToTitle(row["COLUMN_NAME"].ToString()) + " {get; set;}\n";
+                        this.richClass.Text += "\tpublic bool" + nullTag + " " + columName + " {get; set;}\n";
                     }
                     else
-                        this.richClass.Text += "\tpublic string" + nullTag + " " + UtilityHelper.ToTitle(row["COLUMN_NAME"].ToString()) + " {get; set;}\n";
+                        this.richClass.Text += "\tpublic string" + nullTag + " " + columName + " {get; set;}\n";
                 }
                 this.richClass.Text += "}";
 
-                RichTextBoxHelper.ApplyTextHighlighting(richClass, highlightText);
+                RichTextBoxHelper.ApplyTextHighlighting(richClass, CSharpClassHelper.HighlightText(new string[] { tableName }));
 
                 cmdCopyClass.Enabled = true;
             }
@@ -267,55 +247,162 @@ public partial class frmDataViewer : Form
 
     private void cmdMakeInsert_Click(object sender, EventArgs e)
     {
+        string primaryKeyColumn = GetPrimaryKey();
         string tableName = dataGridViewTables.SelectedRows[0].Cells["TABLE_NAME"].Value.ToString();
         string tableSchema = dataGridViewTables.SelectedRows[0].Cells["TABLE_SCHEMA"].Value.ToString();
-        string columns = string.Join(", ", dataGridViewData.Columns.Cast<DataGridViewColumn>().Select(c => c.Name));
-        columns = columns.Replace("cbb,", "");
+        List<string> columns = dataGridViewData.Columns.Cast<DataGridViewColumn>().Select(c => c.Name).ToList();
         string values = string.Empty;
-        foreach (DataGridViewCell cell in dataGridViewData.Rows[0].Cells.Cast<DataGridViewCell>())
+        int cellCount = 0;
+        
+        //Get index selected row in dataGridViewData
+        int indexRow = dataGridViewData.SelectedCells[0].RowIndex;
+
+        foreach (DataGridViewCell cell in dataGridViewData.Rows[indexRow].Cells.Cast<DataGridViewCell>())
         {
-            // Check the type of the cell value and format accordingly
-            if (cell.Value == null || cell.Value == DBNull.Value)
+            if (!columns[cellCount].Equals(primaryKeyColumn))
             {
-                values += "NULL,";
-            }
-            else if (cell.ValueType == typeof(string) && string.IsNullOrEmpty(cell.Value.ToString()))
-            {
-                values += "NULL,";
-            }
-            else
-            if (cell.ValueType == typeof(string))
-            {
-                values += $"'{cell.Value.ToString().Trim()}',";
-            }
-            else if (cell.ValueType == typeof(int) || cell.ValueType == typeof(Int16) || cell.ValueType == typeof(Int32) || cell.ValueType == typeof(Int64))
-            {
-                values += $"{cell.Value},";
-            }
-            else if (cell.ValueType == typeof(DateTime))
-            {
-                values += $"'{((DateTime)cell.Value).ToString("yyyy-MM-dd HH:mm:ss")}',";
-            }
-            else if (cell.ValueType == typeof(bool))
-            {
-                values += cell.Value.ToString().ToLower() + ",";
-            }
-            else if (cell.ValueType == typeof(decimal))
-            {
-                values += $"'{cell.Value}',";
-            }
-            else if (cell.ValueType == typeof(byte))
-            {
-                values += $"NULL,";
+                // Check the type of the cell value and format accordingly
+                if (cell.Value == null || cell.Value == DBNull.Value)
+                {
+                    values += "NULL,";
+                }
+                else if (cell.ValueType == typeof(string) && string.IsNullOrEmpty(cell.Value.ToString()))
+                {
+                    values += "NULL,";
+                }
+                else
+                if (cell.ValueType == typeof(string))
+                {
+                    values += $"'{cell.Value.ToString().Trim()}',";
+                }
+                else if (cell.ValueType == typeof(int) || cell.ValueType == typeof(Int16) || cell.ValueType == typeof(Int32) || cell.ValueType == typeof(Int64))
+                {
+                    values += $"{cell.Value},";
+                }
+                else if (cell.ValueType == typeof(DateTime))
+                {
+                    values += $"'{((DateTime)cell.Value).ToString("yyyy-MM-dd HH:mm:ss")}',";
+                }
+                else if (cell.ValueType == typeof(bool))
+                {
+                    values += $"'{cell.Value.ToString().ToLower()}',";
+                }
+                else if (cell.ValueType == typeof(decimal))
+                {
+                    values += $"'{cell.Value}',";
+                }
+                else if (cell.ValueType == typeof(byte))
+                {
+                    values += $"NULL,";
+                }
+                else if (cell.ValueType == typeof(byte[]))
+                {
+                    values += $"NULL,";
+                }
+                else if (cell.ValueType == typeof(Guid))
+                {
+                    values += $"'{cell.Value.ToString().Trim()}',";
+                }
+                else
+                {
+                    values += $"NULL,";
+                }
+
             }
 
+
+            cellCount++;
         }
 
         values = values.Substring(0, values.Length - 1);
-
-        string queyInsert = $"INSERT INTO {tableSchema}.{tableName} ({columns}) VALUES ({values});";
+        if(!string.IsNullOrEmpty(primaryKeyColumn))
+        {
+            columns.Remove(primaryKeyColumn);
+        }
+        
+        string queyInsert = $"INSERT INTO {tableSchema}.{tableName} ({string.Join(", ", columns)}) VALUES ({values});";
 
         richTextSQL.Text = queyInsert;
+        cmdClear.Enabled = true;
+        cmdCopy.Enabled = true;
+    }
+
+    private void cmdMakeUpdate_Click(object sender, EventArgs e)
+    {
+        string primaryKeyColumn = GetPrimaryKey();
+        string tableName = dataGridViewTables.SelectedRows[0].Cells["TABLE_NAME"].Value.ToString();
+        string tableSchema = dataGridViewTables.SelectedRows[0].Cells["TABLE_SCHEMA"].Value.ToString();
+        List<string> columns = dataGridViewData.Columns.Cast<DataGridViewColumn>().Select(c => c.Name).ToList();
+
+        string globalQueryUpdate = string.Empty;
+        string setColumns = string.Empty;
+        string values = string.Empty;
+
+        int cellCount = 0;
+
+        //Get index selected row in dataGridViewData
+        int indexRow = dataGridViewData.SelectedCells[0].RowIndex;
+
+        foreach (DataGridViewCell cell in dataGridViewData.Rows[indexRow].Cells.Cast<DataGridViewCell>())
+        {
+            if(!columns[cellCount].Equals(primaryKeyColumn))
+            {
+                // Check the type of the cell value and format accordingly
+                if (cell.Value == null || cell.Value == DBNull.Value)
+                {
+                    setColumns += $" {columns[cellCount]} = NULL,";
+                }
+                else if (cell.ValueType == typeof(string) && string.IsNullOrEmpty(cell.Value.ToString()))
+                {
+                    setColumns += $" {columns[cellCount]} = NULL,";
+                }
+                else
+                if (cell.ValueType == typeof(string))
+                {
+                    setColumns += $" {columns[cellCount]} = '{cell.Value.ToString().Trim()}',";
+                }
+                else if (cell.ValueType == typeof(int) || cell.ValueType == typeof(Int16) || cell.ValueType == typeof(Int32) || cell.ValueType == typeof(Int64))
+                {
+                    setColumns += $" {columns[cellCount]} = {cell.Value.ToString().Trim()},";
+                }
+                else if (cell.ValueType == typeof(DateTime))
+                {
+                    setColumns += $" {columns[cellCount]} = '{((DateTime)cell.Value).ToString("yyyy-MM-dd HH:mm:ss")}',";
+                }
+                else if (cell.ValueType == typeof(bool))
+                {
+                    setColumns += $" {columns[cellCount]} = '{cell.Value.ToString().ToLower()}',";
+                }
+                else if (cell.ValueType == typeof(decimal))
+                {
+                    setColumns += $" {columns[cellCount]} = '{cell.Value.ToString().Trim()}',";
+                }
+                else if (cell.ValueType == typeof(byte))
+                {
+                    setColumns += $" {columns[cellCount]} = NULL,";
+                }
+                else if (cell.ValueType == typeof(byte[]))
+                {
+                    setColumns += $" {columns[cellCount]} = NULL,";
+                }
+                else if (cell.ValueType == typeof(Guid))
+                {
+                    setColumns += $" {columns[cellCount]} = '{cell.Value.ToString().Trim()}',";
+                }
+                else
+                {
+                    setColumns += $" {columns[cellCount]} = '{cell.Value.ToString().Trim()}',";
+                }
+            }
+            
+            cellCount++;
+        }
+
+        setColumns = setColumns.Substring(0, setColumns.Length - 1);
+        string queyUpdate = $"UPDATE {tableSchema}.{tableName} SET {setColumns} WHERE {dataGridViewData.Columns[0].Name} = {dataGridViewData.Rows[0].Cells[0].Value};";
+        globalQueryUpdate += queyUpdate + "\n";
+
+        richTextSQL.Text = globalQueryUpdate;
         cmdClear.Enabled = true;
         cmdCopy.Enabled = true;
     }
@@ -325,6 +412,8 @@ public partial class frmDataViewer : Form
         richTextSQL.Text = string.Empty;
         cmdClear.Enabled = false;
         cmdCopy.Enabled = false;
+        chkTotitleCase.Checked = false;
+        chkOriginalColumnName.Checked = false;
     }
 
     private void cmdCopy_Click(object sender, EventArgs e)
@@ -381,4 +470,18 @@ public partial class frmDataViewer : Form
         }
     }
 
+    private void chkOriginalColumnName_CheckedChanged(object sender, EventArgs e)
+    {
+        this.GetClass();
+    }
+
+    private void chkTotitleCase_CheckedChanged(object sender, EventArgs e)
+    {
+        this.GetClass();
+    }
+
+    private void frmDataViewer_Load(object sender, EventArgs e)
+    {
+
+    }
 }

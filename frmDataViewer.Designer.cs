@@ -23,12 +23,15 @@ partial class frmDataViewer
         tabControl1 = new TabControl();
         tabPage1 = new TabPage();
         groupBox2 = new GroupBox();
+        cmdMakeUpdate = new Button();
         richTextSQL = new RichTextBox();
         cmdCopy = new Button();
         cmdClear = new Button();
         cmdMakeInsert = new Button();
         dataGridViewData = new DataGridView();
         tabPage2 = new TabPage();
+        chkOriginalColumnName = new CheckBox();
+        chkTotitleCase = new CheckBox();
         cmdCopyClass = new Button();
         richClass = new RichTextBox();
         cmdOpen = new Button();
@@ -98,9 +101,11 @@ partial class frmDataViewer
         // dataGridViewTables
         // 
         dataGridViewTables.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        dataGridViewTables.ColumnHeadersHeight = 29;
         dataGridViewTables.Columns.AddRange(new DataGridViewColumn[] { TABLE_NAME, TABLE_SCHEMA, TABLE_TYPE });
         dataGridViewTables.Location = new Point(6, 22);
         dataGridViewTables.Name = "dataGridViewTables";
+        dataGridViewTables.RowHeadersWidth = 51;
         dataGridViewTables.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         dataGridViewTables.Size = new Size(1096, 184);
         dataGridViewTables.TabIndex = 6;
@@ -110,6 +115,7 @@ partial class frmDataViewer
         // 
         TABLE_NAME.DataPropertyName = "TABLE_NAME";
         TABLE_NAME.HeaderText = "TABLE_NAME";
+        TABLE_NAME.MinimumWidth = 6;
         TABLE_NAME.Name = "TABLE_NAME";
         TABLE_NAME.ReadOnly = true;
         TABLE_NAME.Width = 210;
@@ -118,6 +124,7 @@ partial class frmDataViewer
         // 
         TABLE_SCHEMA.DataPropertyName = "TABLE_SCHEMA";
         TABLE_SCHEMA.HeaderText = "TABLE_SCHEMA";
+        TABLE_SCHEMA.MinimumWidth = 6;
         TABLE_SCHEMA.Name = "TABLE_SCHEMA";
         TABLE_SCHEMA.ReadOnly = true;
         TABLE_SCHEMA.Width = 210;
@@ -126,6 +133,7 @@ partial class frmDataViewer
         // 
         TABLE_TYPE.DataPropertyName = "TABLE_TYPE";
         TABLE_TYPE.HeaderText = "TABLE_TYPE";
+        TABLE_TYPE.MinimumWidth = 6;
         TABLE_TYPE.Name = "TABLE_TYPE";
         TABLE_TYPE.ReadOnly = true;
         TABLE_TYPE.Width = 210;
@@ -138,7 +146,7 @@ partial class frmDataViewer
         tabControl1.Location = new Point(12, 272);
         tabControl1.Name = "tabControl1";
         tabControl1.SelectedIndex = 0;
-        tabControl1.Size = new Size(1107, 581);
+        tabControl1.Size = new Size(1107, 507);
         tabControl1.TabIndex = 12;
         // 
         // tabPage1
@@ -148,7 +156,7 @@ partial class frmDataViewer
         tabPage1.Location = new Point(4, 24);
         tabPage1.Name = "tabPage1";
         tabPage1.Padding = new Padding(3);
-        tabPage1.Size = new Size(1099, 553);
+        tabPage1.Size = new Size(1099, 479);
         tabPage1.TabIndex = 0;
         tabPage1.Text = "Datos";
         tabPage1.UseVisualStyleBackColor = true;
@@ -156,16 +164,28 @@ partial class frmDataViewer
         // groupBox2
         // 
         groupBox2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        groupBox2.Controls.Add(cmdMakeUpdate);
         groupBox2.Controls.Add(richTextSQL);
         groupBox2.Controls.Add(cmdCopy);
         groupBox2.Controls.Add(cmdClear);
         groupBox2.Controls.Add(cmdMakeInsert);
-        groupBox2.Location = new Point(6, 341);
+        groupBox2.Location = new Point(6, 267);
         groupBox2.Name = "groupBox2";
         groupBox2.Size = new Size(1087, 209);
         groupBox2.TabIndex = 15;
         groupBox2.TabStop = false;
         groupBox2.Text = "Query";
+        // 
+        // cmdMakeUpdate
+        // 
+        cmdMakeUpdate.Enabled = false;
+        cmdMakeUpdate.Location = new Point(152, 16);
+        cmdMakeUpdate.Name = "cmdMakeUpdate";
+        cmdMakeUpdate.Size = new Size(140, 28);
+        cmdMakeUpdate.TabIndex = 16;
+        cmdMakeUpdate.Text = "Generar Update";
+        cmdMakeUpdate.UseVisualStyleBackColor = true;
+        cmdMakeUpdate.Click += cmdMakeUpdate_Click;
         // 
         // richTextSQL
         // 
@@ -215,23 +235,49 @@ partial class frmDataViewer
         // dataGridViewData
         // 
         dataGridViewData.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        dataGridViewData.ColumnHeadersHeight = 29;
         dataGridViewData.Location = new Point(6, 6);
         dataGridViewData.Name = "dataGridViewData";
+        dataGridViewData.RowHeadersWidth = 51;
         dataGridViewData.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        dataGridViewData.Size = new Size(1087, 328);
+        dataGridViewData.Size = new Size(1087, 254);
         dataGridViewData.TabIndex = 14;
         // 
         // tabPage2
         // 
+        tabPage2.Controls.Add(chkOriginalColumnName);
+        tabPage2.Controls.Add(chkTotitleCase);
         tabPage2.Controls.Add(cmdCopyClass);
         tabPage2.Controls.Add(richClass);
         tabPage2.Location = new Point(4, 24);
         tabPage2.Name = "tabPage2";
         tabPage2.Padding = new Padding(3);
-        tabPage2.Size = new Size(1099, 553);
+        tabPage2.Size = new Size(1099, 479);
         tabPage2.TabIndex = 1;
-        tabPage2.Text = "Clase";
+        tabPage2.Text = "C# Clase";
         tabPage2.UseVisualStyleBackColor = true;
+        // 
+        // chkOriginalColumnName
+        // 
+        chkOriginalColumnName.AutoSize = true;
+        chkOriginalColumnName.Location = new Point(172, 13);
+        chkOriginalColumnName.Name = "chkOriginalColumnName";
+        chkOriginalColumnName.Size = new Size(181, 19);
+        chkOriginalColumnName.TabIndex = 17;
+        chkOriginalColumnName.Text = "Anotacion: Columna Original";
+        chkOriginalColumnName.UseVisualStyleBackColor = true;
+        chkOriginalColumnName.CheckedChanged += chkOriginalColumnName_CheckedChanged;
+        // 
+        // chkTotitleCase
+        // 
+        chkTotitleCase.AutoSize = true;
+        chkTotitleCase.Location = new Point(6, 13);
+        chkTotitleCase.Name = "chkTotitleCase";
+        chkTotitleCase.Size = new Size(132, 19);
+        chkTotitleCase.TabIndex = 16;
+        chkTotitleCase.Text = "Mayusculas al inicio";
+        chkTotitleCase.UseVisualStyleBackColor = true;
+        chkTotitleCase.CheckedChanged += chkTotitleCase_CheckedChanged;
         // 
         // cmdCopyClass
         // 
@@ -252,7 +298,7 @@ partial class frmDataViewer
         richClass.BorderStyle = BorderStyle.None;
         richClass.Location = new Point(6, 42);
         richClass.Name = "richClass";
-        richClass.Size = new Size(1087, 505);
+        richClass.Size = new Size(1087, 430);
         richClass.TabIndex = 0;
         richClass.Text = "";
         // 
@@ -270,7 +316,7 @@ partial class frmDataViewer
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(1133, 865);
+        ClientSize = new Size(1133, 791);
         Controls.Add(cmdOpen);
         Controls.Add(tabControl1);
         Controls.Add(groupBox1);
@@ -281,6 +327,7 @@ partial class frmDataViewer
         Controls.Add(btnFetchData);
         Name = "frmDataViewer";
         Text = "SQL Data Viewer";
+        Load += frmDataViewer_Load;
         groupBox1.ResumeLayout(false);
         ((System.ComponentModel.ISupportInitialize)dataGridViewTables).EndInit();
         tabControl1.ResumeLayout(false);
@@ -288,6 +335,7 @@ partial class frmDataViewer
         groupBox2.ResumeLayout(false);
         ((System.ComponentModel.ISupportInitialize)dataGridViewData).EndInit();
         tabPage2.ResumeLayout(false);
+        tabPage2.PerformLayout();
         ResumeLayout(false);
         PerformLayout();
     }
@@ -308,4 +356,7 @@ partial class frmDataViewer
     private Button cmdCopyClass;
     private RichTextBox richClass;
     private Button cmdOpen;
+    private CheckBox chkTotitleCase;
+    private CheckBox chkOriginalColumnName;
+    private Button cmdMakeUpdate;
 }
